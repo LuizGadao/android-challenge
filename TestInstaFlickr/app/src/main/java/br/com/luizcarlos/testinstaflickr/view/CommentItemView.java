@@ -34,7 +34,7 @@ public class CommentItemView extends RelativeLayout implements ViewWrapper.Binde
     }
 
     @Override
-    public void onBind( Comment data ) {
+    public void onBind( Comment data, int position ) {
         String format = String.format( getContext().getString( R.string.format_author_name ),
                 data.getAuthorName(),
                 TimeUtils.timePassed( data.getDateCreate() ) );

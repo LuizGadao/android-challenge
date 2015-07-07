@@ -20,6 +20,6 @@ public class ViewWrapper<T, V extends View & ViewWrapper.Binder<T>> extends Recy
     }
 
     public interface Binder<T>{
-        void onBind( T data );
+        void onBind( T data, int position );
     }
 }

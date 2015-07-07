@@ -26,7 +26,7 @@ public abstract class RecyclerViewAdapterBase<T, V extends View & ViewWrapper.Bi
     public void onBindViewHolder( ViewWrapper<T, V> holder, int position ) {
         V view = holder.getView();
         T data = items.get( position );
-        view.onBind( data );
+        view.onBind( data, position );
     }
 
     @Override
@@ -46,5 +46,9 @@ public abstract class RecyclerViewAdapterBase<T, V extends View & ViewWrapper.Bi
 
     public void clear(){
         items.clear();
+    }
+
+    public List<T> getItems() {
+        return items;
     }
 }

@@ -35,14 +35,15 @@ import org.androidannotations.annotations.ViewById;
 import java.util.HashSet;
 import java.util.Set;
 
-import br.com.luizcarlos.testinstaflickr.adapter.AdapterRecentPhotos;
+import br.com.luizcarlos.testinstaflickr.adapter.RecentPhotosAdapter;
 import br.com.luizcarlos.testinstaflickr.utils.EndlessRecyclerOnScrollListener;
 import br.com.luizcarlos.testinstaflickr.utils.NetworkUtils;
+import br.com.luizcarlos.testinstaflickr.view.RecentPhotoItemView;
 
 //import android.support.annotation.UiThread;
 
 @EActivity
-public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, AdapterRecentPhotos.EventPhotosItemClick {
+public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, RecentPhotoItemView.EventPhotosItemClick {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     public static final int RESUTL_ACTIVITY_ENABLE_INTERNET = 123;
@@ -63,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     int currentPage = 1;
 
 
-    AdapterRecentPhotos adapterRecentPhotos;
+    RecentPhotosAdapter adapter;
 
     //max recent photos
     int maxRecentPhoto = 1000;
@@ -102,11 +103,11 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     @AfterViews
     void init(){
-        adapterRecentPhotos = new AdapterRecentPhotos(this);
+        adapter = new RecentPhotosAdapter( this );
         recyclerView.setHasFixedSize( false );
         LinearLayoutManager layoutManager = new LinearLayoutManager( this, LinearLayoutManager.VERTICAL, false );
         recyclerView.setLayoutManager( layoutManager );
-        recyclerView.setAdapter( adapterRecentPhotos );
+        recyclerView.setAdapter( adapter );
         recyclerView.addOnScrollListener( new EndlessRecyclerOnScrollListener( layoutManager ) {
             @Override
             public void onLoadMore( int current_page ) {
@@ -180,8 +181,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     @UiThread
     void addPhotosInAdapter( PhotoList recents ){
-        adapterRecentPhotos.appendPhotos( recents );
-
+        adapter.addAll( recents );
         swipeRefresh.setRefreshing( false );
 
         //set position in recyclerview when device orientation change
@@ -227,7 +227,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     protected void onActivityResult( int requestCode, int resultCode, Intent data ) {
         super.onActivityResult( requestCode, resultCode, data );
 
-        if ( requestCode == RESUTL_ACTIVITY_ENABLE_INTERNET && adapterRecentPhotos.getItemCount() == 0 )
+        if ( requestCode == RESUTL_ACTIVITY_ENABLE_INTERNET && adapter.getItemCount() == 0 )
             loadPhotos();
     }
 
@@ -236,9 +236,11 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         super.onSaveInstanceState( outState );
 
         //set values for save
-        photosRecent = adapterRecentPhotos.getRecentPhotos();
+        if ( photosRecent == null )
+            photosRecent = new PhotoList();
+
+        photosRecent.clear();
+        photosRecent.addAll( adapter.getItems() );
         firtVisibleItemRecyclerView = ( (LinearLayoutManager)recyclerView.getLayoutManager() ).findFirstVisibleItemPosition();
     }
-
-
 }
