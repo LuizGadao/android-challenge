@@ -13,7 +13,9 @@ import android.util.Log;
 import android.widget.TextView;
 
 import com.facebook.drawee.backends.pipeline.Fresco;
+import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
+import com.facebook.imagepipeline.request.ImageRequest;
 import com.googlecode.flickrjandroid.Flickr;
 import com.googlecode.flickrjandroid.FlickrException;
 import com.googlecode.flickrjandroid.photos.Photo;
@@ -90,6 +92,8 @@ public class DetailsPhoto extends AppCompatActivity {
         super.onCreate( savedInstanceState );
         Fresco.initialize( this );
         setContentView( R.layout.activity_details_photo );
+
+
     }
 
     @AfterViews
@@ -108,7 +112,16 @@ public class DetailsPhoto extends AppCompatActivity {
 
         //load imagens
         sdPhoto.setImageURI( Uri.parse( String.format(getString( R.string.flickr_buddyicon ), photo.getOwner().getId() ) ) );
-        sdPicture.setImageURI( Uri.parse( photo.getMedium640Url() ) );
+
+        Uri lowResUri = Uri.parse( photo.getThumbnailUrl() );
+        Uri hightResUri = Uri.parse( photo.getMedium640Url() );
+        DraweeController draweeController = Fresco.newDraweeControllerBuilder()
+                .setLowResImageRequest( ImageRequest.fromUri( lowResUri ) )
+                .setImageRequest( ImageRequest.fromUri( hightResUri ) )
+                .setOldController( sdPicture.getController() )
+                .build();
+
+        sdPicture.setController( draweeController );
 
         adapterComments = new AdapterComments();
         recyclerViewComments.setHasFixedSize( false );
