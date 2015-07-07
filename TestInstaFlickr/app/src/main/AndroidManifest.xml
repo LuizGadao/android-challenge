@@ -26,7 +26,8 @@
         <activity
             android:name=".DetailsPhoto_"
             android:label="@string/title_activity_details_photo"
-            android:parentActivityName=".MainActivity_" >
+            android:parentActivityName=".MainActivity_"
+            android:windowSoftInputMode="stateAlwaysHidden">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="br.com.luizcarlos.testinstaflickr.MainActivity" />
