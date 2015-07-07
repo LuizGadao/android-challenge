@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:fresco="http://schemas.android.com/apk/res-auto"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    card_view:cardUseCompatPadding="true"
+    card_view:cardElevation="4dp"
+    card_view:cardCornerRadius="1dp"
+    >
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp">
+        <com.facebook.drawee.view.SimpleDraweeView
+            android:id="@+id/picture"
+            android:transitionName="element1"
+            android:layout_width="80dp"
+            android:layout_height="65dp"
+            tools:background="#cccccc"
+            android:layout_marginRight="8dp"
+            fresco:roundedCornerRadius="2dp"
+            fresco:actualImageScaleType="centerCrop"
+            fresco:placeholderImage="@drawable/place_holder_picture"
+            fresco:placeholderImageScaleType="centerCrop"
+            />
+
+        <TextView
+            android:id="@+id/titlePhoto"
+            android:transitionName="element2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:layout_toRightOf="@id/picture"
+            tools:text="My title photo here"
+            android:textColor="@color/primary_text"
+            android:fontFamily="sans-serif"
+            android:textSize="@dimen/abc_text_size_medium_material"
+            />
+
+        <TextView
+            android:id="@+id/tvNameOwner"
+            android:transitionName="element3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:text="Luiz Carlos Gonçalves dos Anjos"
+            android:layout_below="@id/titlePhoto"
+            android:layout_toRightOf="@id/picture"
+            android:fontFamily="sans-serif-light"
+            android:textColor="@color/second_text"
+            android:textSize="@dimen/abc_text_size_small_material"
+            />
+    </RelativeLayout>
+
+</android.support.v7.widget.CardView>
