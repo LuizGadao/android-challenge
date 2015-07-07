@@ -36,6 +36,7 @@ import java.text.MessageFormat;
 import java.util.List;
 
 import br.com.luizcarlos.testinstaflickr.adapter.AdapterComments;
+import br.com.luizcarlos.testinstaflickr.adapter.CommentsAdapter;
 import br.com.luizcarlos.testinstaflickr.utils.TimeUtils;
 
 @EActivity
@@ -130,7 +131,7 @@ public class DetailsPhoto extends AppCompatActivity {
         recyclerViewComments.setAdapter( adapterComments );
 
         //id "18850487234" para testar comentários
-        getPhotoComments( photo.getId() );
+        getPhotoComments( "18850487234" );
     }
 
     @Background
@@ -159,6 +160,10 @@ public class DetailsPhoto extends AppCompatActivity {
         tvCountComment.setText( MessageFormat.format( fmt, countComments ) );
 
         // update ADAPTER
-        adapterComments.setComments( comments );
+        //adapterComments.setComments( comments );
+
+        CommentsAdapter adapter = new CommentsAdapter( this );
+        adapter.addAll( comments );
+        recyclerViewComments.setAdapter( adapter );
     }
 }
