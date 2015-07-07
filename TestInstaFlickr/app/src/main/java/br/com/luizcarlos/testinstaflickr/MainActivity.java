@@ -63,7 +63,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     @InstanceState
     int currentPage = 1;
 
-
     RecentPhotosAdapter adapter;
 
     //max recent photos
@@ -77,18 +76,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     protected void onCreate( Bundle savedInstanceState ) {
 
         if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ){
-
-            /*long timeTransition = (long) 2.5 * 1000;
-
-            Explode explodeTransition = new Explode();
-            explodeTransition.setDuration( timeTransition );
-
-            Fade fadeTransition = new Fade();
-            fadeTransition.setDuration( timeTransition );
-
-            getWindow().setExitTransition( explodeTransition );
-            getWindow().setReenterTransition( fadeTransition );*/
-
             TransitionInflater transitionInflater = TransitionInflater.from( this );
             Transition transition = transitionInflater.inflateTransition( R.transition.transition );
             getWindow().setSharedElementExitTransition( transition );
@@ -157,12 +144,9 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     @Background
     void getPhotosFlickr(){
         Set<String> params = new HashSet();
-        //z medium 640, 640 on longest side
-        params.add( "url_z" );
-        //n	small, 320 on longest side
-        params.add( "url_n" );
-        //q	large square 150x150
-        params.add( "url_q" );
+        params.add( "url_z" );//z medium 640, 640 on longest side
+        params.add( "url_n" );//n	small, 320 on longest side
+        params.add( "url_q" );//q	large square 150x150
         params.add( "owner_name" );
         params.add( "date_taken" );
         params.add( "date_upload" );
@@ -207,17 +191,13 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             Transition transition = transitionInflater.inflateTransition( R.transition.transition );
             getWindow().setSharedElementExitTransition( transition );
 
-            View picture = view.findViewById( R.id.picture );
-            View title = view.findViewById( R.id.titlePhoto );
-            View owner = view.findViewById( R.id.tvNameOwner );
-            Pair<View, String> p1 = Pair.create( picture, "element1");
-            Pair<View, String> p2 = Pair.create( title, "element2" );
-            Pair<View, String> p3 = Pair.create( owner, "element3" );
+            Pair<View, String> p1 = Pair.create( view.findViewById( R.id.picture ), "element1" );
+            Pair<View, String> p2 = Pair.create( view.findViewById( R.id.titlePhoto ), "element2" );
+            Pair<View, String> p3 = Pair.create( view.findViewById( R.id.tvNameOwner ), "element3" );
 
             ActivityOptionsCompat activityOptions = ActivityOptionsCompat.makeSceneTransitionAnimation(
                     this, p1, p2, p3);
             startActivity( intent, activityOptions.toBundle() );
-            //startActivity( intent );
         }else {
             startActivity( intent );
         }
