@@ -16,8 +16,6 @@ import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.facebook.imagepipeline.request.ImageRequest;
-import com.googlecode.flickrjandroid.Flickr;
-import com.googlecode.flickrjandroid.FlickrException;
 import com.googlecode.flickrjandroid.photos.Photo;
 import com.googlecode.flickrjandroid.photos.comments.Comment;
 import com.googlecode.flickrjandroid.photos.comments.CommentsInterface;
@@ -29,13 +27,10 @@ import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.Extra;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
-import org.json.JSONException;
 
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.List;
 
-import br.com.luizcarlos.testinstaflickr.adapter.AdapterComments;
 import br.com.luizcarlos.testinstaflickr.adapter.CommentsAdapter;
 import br.com.luizcarlos.testinstaflickr.utils.TimeUtils;
 
@@ -79,8 +74,6 @@ public class DetailsPhoto extends AppCompatActivity {
     @App
     MyApplication myApplication;
 
-    AdapterComments adapterComments;
-
     @Override
     protected void onCreate( Bundle savedInstanceState ) {
 
@@ -93,16 +86,10 @@ public class DetailsPhoto extends AppCompatActivity {
         super.onCreate( savedInstanceState );
         Fresco.initialize( this );
         setContentView( R.layout.activity_details_photo );
-
-
     }
 
     @AfterViews
     void init(){
-        Log.i( TAG, "id: " + photo.getId() );
-        Log.i( TAG, "thumbnail: " + photo.getThumbnailUrl() );
-        Log.i( TAG, "image: " + photo.getSmall320Url() );
-
         setSupportActionBar( toolbar );
         getSupportActionBar().setHomeButtonEnabled( true );
         getSupportActionBar().setDisplayHomeAsUpEnabled( true );
@@ -113,22 +100,15 @@ public class DetailsPhoto extends AppCompatActivity {
 
         //load imagens
         sdPhoto.setImageURI( Uri.parse( String.format(getString( R.string.flickr_buddyicon ), photo.getOwner().getId() ) ) );
-
-        Uri lowResUri = Uri.parse( photo.getThumbnailUrl() );
-        Uri hightResUri = Uri.parse( photo.getMedium640Url() );
         DraweeController draweeController = Fresco.newDraweeControllerBuilder()
-                .setLowResImageRequest( ImageRequest.fromUri( lowResUri ) )
-                .setImageRequest( ImageRequest.fromUri( hightResUri ) )
+                .setLowResImageRequest( ImageRequest.fromUri( photo.getThumbnailUrl() ) )
+                .setImageRequest( ImageRequest.fromUri( photo.getMedium640Url() ) )
                 .setOldController( sdPicture.getController() )
                 .build();
-
         sdPicture.setController( draweeController );
 
-        adapterComments = new AdapterComments();
         recyclerViewComments.setHasFixedSize( false );
-        LinearLayoutManager layoutManager = new LinearLayoutManager( this, LinearLayoutManager.VERTICAL, false );
-        recyclerViewComments.setLayoutManager( layoutManager );
-        recyclerViewComments.setAdapter( adapterComments );
+        recyclerViewComments.setLayoutManager( new LinearLayoutManager( this, LinearLayoutManager.VERTICAL, false ) );
 
         //id "18850487234" para testar comentários
         getPhotoComments( "18850487234" );
@@ -136,17 +116,12 @@ public class DetailsPhoto extends AppCompatActivity {
 
     @Background
     void getPhotoComments( String idPhoto ){
-        Flickr flickr = myApplication.getFlicker();
-        CommentsInterface commentsInterface = flickr.getCommentsInterface();
+        CommentsInterface commentsInterface = myApplication.getFlicker().getCommentsInterface();
 
         try {
             List<Comment> comments = commentsInterface.getList( idPhoto, null, null );
             createListComments( comments );
-        } catch ( FlickrException e ) {
-            e.printStackTrace();
-        } catch ( IOException e ) {
-            e.printStackTrace();
-        } catch ( JSONException e ) {
+        } catch ( Exception e ) {
             e.printStackTrace();
         }
     }
@@ -155,12 +130,8 @@ public class DetailsPhoto extends AppCompatActivity {
     void createListComments( List<Comment> comments ){
         Log.i( TAG, "total-comments: " + comments.size() + " id: " + photo.getId() );
 
-        int countComments = comments.size();
         String fmt = getString( R.string.comment );
-        tvCountComment.setText( MessageFormat.format( fmt, countComments ) );
-
-        // update ADAPTER
-        //adapterComments.setComments( comments );
+        tvCountComment.setText( MessageFormat.format( fmt, comments.size() ) );
 
         CommentsAdapter adapter = new CommentsAdapter( this );
         adapter.addAll( comments );

@@ -16,7 +16,6 @@ import android.util.Log;
 import android.view.View;
 
 import com.facebook.drawee.backends.pipeline.Fresco;
-import com.googlecode.flickrjandroid.Flickr;
 import com.googlecode.flickrjandroid.photos.Photo;
 import com.googlecode.flickrjandroid.photos.PhotoList;
 import com.googlecode.flickrjandroid.photos.PhotosInterface;
@@ -29,6 +28,7 @@ import org.androidannotations.annotations.App;
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.InstanceState;
+import org.androidannotations.annotations.OnActivityResult;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 
@@ -152,8 +152,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         params.add( "date_upload" );
         params.add( "last_update" );
 
-        Flickr flickr = myApplication.getFlicker();
-        PhotosInterface photosInterface = flickr.getPhotosInterface();
+        PhotosInterface photosInterface = myApplication.getFlicker().getPhotosInterface();
         try {
             Log.i( TAG, "load-page: " + currentPage );
             PhotoList photosRecent = photosInterface.getRecent( params, itemPerPage, currentPage );
@@ -186,29 +185,27 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         Intent intent = new Intent( this, DetailsPhoto_.class );
         intent.putExtra( DetailsPhoto.EXTRA_OBJ_PHOTO, photo );
 
+        //FRESCO NOT SUPPORT ANDROID TRANSITION VERY WELL
         if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ){
             TransitionInflater transitionInflater = TransitionInflater.from( this );
             Transition transition = transitionInflater.inflateTransition( R.transition.transition );
             getWindow().setSharedElementExitTransition( transition );
 
-            Pair<View, String> p1 = Pair.create( view.findViewById( R.id.picture ), "element1" );
-            Pair<View, String> p2 = Pair.create( view.findViewById( R.id.titlePhoto ), "element2" );
-            Pair<View, String> p3 = Pair.create( view.findViewById( R.id.tvNameOwner ), "element3" );
-
             ActivityOptionsCompat activityOptions = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                    this, p1, p2, p3);
+                    this, Pair.create( view.findViewById( R.id.picture ), "element1" ),
+                    Pair.create( view.findViewById( R.id.titlePhoto ), "element2" ),
+                    Pair.create( view.findViewById( R.id.tvNameOwner ), "element3" ) );
+
             startActivity( intent, activityOptions.toBundle() );
+            //startActivity( intent );
         }else {
             startActivity( intent );
         }
     }
 
-    @Override
-    protected void onActivityResult( int requestCode, int resultCode, Intent data ) {
-        super.onActivityResult( requestCode, resultCode, data );
-
-        if ( requestCode == RESUTL_ACTIVITY_ENABLE_INTERNET && adapter.getItemCount() == 0 )
-            loadPhotos();
+    @OnActivityResult(RESUTL_ACTIVITY_ENABLE_INTERNET)
+    void onResult( int resultCode ){
+        loadPhotos();
     }
 
     @Override
@@ -218,7 +215,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         //set values for save
         if ( photosRecent == null )
             photosRecent = new PhotoList();
-
         photosRecent.clear();
         photosRecent.addAll( adapter.getItems() );
         firtVisibleItemRecyclerView = ( (LinearLayoutManager)recyclerView.getLayoutManager() ).findFirstVisibleItemPosition();
