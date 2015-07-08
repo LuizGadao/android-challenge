@@ -11,11 +11,14 @@ import com.daimajia.androidanimations.library.YoYo;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.googlecode.flickrjandroid.photos.Photo;
 
+import org.androidannotations.annotations.App;
 import org.androidannotations.annotations.EViewGroup;
 import org.androidannotations.annotations.ViewById;
 
+import br.com.luizcarlos.testinstaflickr.MyApplication;
 import br.com.luizcarlos.testinstaflickr.R;
 import br.com.luizcarlos.testinstaflickr.adapter.ViewWrapper;
+import br.com.luizcarlos.testinstaflickr.event.ItemRecyclerViewClick;
 
 /**
  * Created by luizcarlos on 07/07/15.
@@ -30,23 +33,22 @@ public class RecentPhotoItemView extends CardView implements ViewWrapper.Binder<
     @ViewById
     TextView tvNameOwner;
 
+    @App
+    MyApplication myApplication;
+
     int lastPositionBind = 0;
     private Photo photo;
-    EventPhotosItemClick event;
+    private int position = 0;
 
     public RecentPhotoItemView( Context context ) {
         super( context );
-    }
-
-    public RecentPhotoItemView( Context context, EventPhotosItemClick event ) {
-        super( context );
-        this.event = event;
-        this.setOnClickListener( this );
+        setOnClickListener( this );
     }
 
     @Override
     public void onBind( Photo data, int position ) {
         this.photo = data;
+        this.position = position;
         titlePhoto.setText( data.getTitle().equals( "" ) ? "without title" : data.getTitle() );
         tvNameOwner.setText( data.getOwner().getUsername() );
 
@@ -60,11 +62,6 @@ public class RecentPhotoItemView extends CardView implements ViewWrapper.Binder<
 
     @Override
     public void onClick( View view ) {
-        if ( event != null )
-            event.onItemClick( photo, this );
-    }
-
-    public interface EventPhotosItemClick {
-        void onItemClick( Photo photo, View view );
+        myApplication.getBus().post( new ItemRecyclerViewClick( this, position ) );
     }
 }

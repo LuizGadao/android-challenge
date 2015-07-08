@@ -22,6 +22,7 @@ import com.googlecode.flickrjandroid.photos.PhotosInterface;
 import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
 import com.nispok.snackbar.listeners.ActionClickListener;
+import com.squareup.otto.Subscribe;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.App;
@@ -36,14 +37,14 @@ import java.util.HashSet;
 import java.util.Set;
 
 import br.com.luizcarlos.testinstaflickr.adapter.RecentPhotosAdapter;
+import br.com.luizcarlos.testinstaflickr.event.ItemRecyclerViewClick;
 import br.com.luizcarlos.testinstaflickr.utils.EndlessRecyclerOnScrollListener;
 import br.com.luizcarlos.testinstaflickr.utils.NetworkUtils;
-import br.com.luizcarlos.testinstaflickr.view.RecentPhotoItemView;
 
 //import android.support.annotation.UiThread;
 
 @EActivity
-public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, RecentPhotoItemView.EventPhotosItemClick {
+public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     public static final int RESUTL_ACTIVITY_ENABLE_INTERNET = 123;
@@ -88,8 +89,16 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         swipeRefresh.setColorSchemeResources( R.color.accent, R.color.primary, R.color.green );
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        myApplication.getBus().unregister( this );
+    }
+
     @AfterViews
     void init(){
+        myApplication.getBus().register( this );
+
         adapter = new RecentPhotosAdapter( this );
         recyclerView.setHasFixedSize( false );
         LinearLayoutManager layoutManager = new LinearLayoutManager( this, LinearLayoutManager.VERTICAL, false );
@@ -179,9 +188,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         loadPhotos();
     }
 
-    @Override
-    public void onItemClick( Photo photo, View view ) {
-        Log.i( TAG, "onclick-cardview : " + photo.getId() );
+    private void openDetailsPhotoActivity( Photo photo, View view ){
         Intent intent = new Intent( this, DetailsPhoto_.class );
         intent.putExtra( DetailsPhoto.EXTRA_OBJ_PHOTO, photo );
 
@@ -201,6 +208,11 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         }else {
             startActivity( intent );
         }
+    }
+
+    @Subscribe
+    public void onItemRecyclerViewClick( ItemRecyclerViewClick event ){
+        openDetailsPhotoActivity( adapter.getItems().get( event.getPosition() ), event.getView() );
     }
 
     @OnActivityResult(RESUTL_ACTIVITY_ENABLE_INTERNET)
