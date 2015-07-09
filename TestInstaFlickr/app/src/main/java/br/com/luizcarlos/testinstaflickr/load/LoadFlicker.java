@@ -28,7 +28,7 @@ public class LoadFlicker {
     //max recent photos
     double maxRecentPhoto = 1000.0;
     //total photos por page
-    int itemPerPage = 150;
+    int itemPerPage = 100;
     //max page
     int maxPage = ( int ) Math.ceil( maxRecentPhoto / itemPerPage );
 
