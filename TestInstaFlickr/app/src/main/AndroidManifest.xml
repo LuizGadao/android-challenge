@@ -12,7 +12,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme"
-        android:name=".MyApplication_">
+        android:name="MyApplication_">
         <activity
             android:name=".MainActivity_"
             android:launchMode="singleTask"
@@ -24,7 +24,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".DetailsPhoto_"
+            android:name=".DetailsPhotoActivity_"
             android:label="@string/title_activity_details_photo"
             android:parentActivityName=".MainActivity_"
             android:windowSoftInputMode="stateAlwaysHidden">

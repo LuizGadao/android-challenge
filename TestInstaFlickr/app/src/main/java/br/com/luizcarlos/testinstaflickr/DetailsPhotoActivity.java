@@ -16,41 +16,36 @@ import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.facebook.imagepipeline.request.ImageRequest;
+import com.googlecode.flickrjandroid.FlickrException;
 import com.googlecode.flickrjandroid.photos.Photo;
 import com.googlecode.flickrjandroid.photos.comments.Comment;
-import com.googlecode.flickrjandroid.photos.comments.CommentsInterface;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.App;
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.Extra;
+import org.androidannotations.annotations.OnActivityResult;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
+import org.json.JSONException;
 
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.List;
 
 import br.com.luizcarlos.testinstaflickr.adapter.CommentsAdapter;
+import br.com.luizcarlos.testinstaflickr.load.LoadFlicker;
+import br.com.luizcarlos.testinstaflickr.utils.NetworkUtils;
 import br.com.luizcarlos.testinstaflickr.utils.TimeUtils;
+import br.com.luizcarlos.testinstaflickr.utils.Utils;
 
 @EActivity
-public class DetailsPhoto extends AppCompatActivity {
+public class DetailsPhotoActivity extends AppCompatActivity {
 
-
-    private static final String TAG = DetailsPhoto.class.getSimpleName();
-
-    public static final String EXTRA_TITLE = "title";
-    public static final String EXTRA_NAME_OWNER = "name-owner";
-    public static final String EXTRA_URL_PICTURE = "url-picture";
+    private static final String TAG = DetailsPhotoActivity.class.getSimpleName();
     public static final String EXTRA_OBJ_PHOTO = "obj-photo";
 
-    @Extra(EXTRA_TITLE)
-    String title;
-    @Extra(EXTRA_NAME_OWNER)
-    String nameOwner;
-    @Extra(EXTRA_URL_PICTURE)
-    String urlPicture;
     @Extra(EXTRA_OBJ_PHOTO)
     Photo photo;
 
@@ -74,6 +69,8 @@ public class DetailsPhoto extends AppCompatActivity {
     @App
     MyApplication myApplication;
 
+    LoadFlicker loadFlicker;
+
     @Override
     protected void onCreate( Bundle savedInstanceState ) {
 
@@ -84,8 +81,8 @@ public class DetailsPhoto extends AppCompatActivity {
         }
 
         super.onCreate( savedInstanceState );
-        Fresco.initialize( this );
         setContentView( R.layout.activity_details_photo );
+        loadFlicker = new LoadFlicker();
     }
 
     @AfterViews
@@ -94,36 +91,66 @@ public class DetailsPhoto extends AppCompatActivity {
         getSupportActionBar().setHomeButtonEnabled( true );
         getSupportActionBar().setDisplayHomeAsUpEnabled( true );
 
-        tvTitle.setText( photo.getTitle().equals( "" ) ? "Without title" : photo.getTitle() );
+        tvTitle.setText( photo.getTitle().equals( "" ) ? getString( R.string.with_out_title) : photo.getTitle() );
         tvNameOwner.setText( photo.getOwner().getUsername() );
         tvTimeCreated.setText( TimeUtils.timePassed( photo.getDatePosted() ) );
 
-        //load imagens
-        sdPhoto.setImageURI( Uri.parse( String.format(getString( R.string.flickr_buddyicon ), photo.getOwner().getId() ) ) );
+        recyclerViewComments.setHasFixedSize( false );
+        recyclerViewComments.setLayoutManager( new LinearLayoutManager( this, LinearLayoutManager.VERTICAL, false ) );
+
+        //load images and comments
+        load();
+    }
+
+    private void loadImagens() {
+        sdPhoto.setImageURI( Uri.parse( String.format( getString( R.string.flickr_buddyicon ), photo.getOwner().getId() ) ) );
         DraweeController draweeController = Fresco.newDraweeControllerBuilder()
                 .setLowResImageRequest( ImageRequest.fromUri( photo.getThumbnailUrl() ) )
                 .setImageRequest( ImageRequest.fromUri( photo.getMedium640Url() ) )
                 .setOldController( sdPicture.getController() )
                 .build();
         sdPicture.setController( draweeController );
+    }
 
-        recyclerViewComments.setHasFixedSize( false );
-        recyclerViewComments.setLayoutManager( new LinearLayoutManager( this, LinearLayoutManager.VERTICAL, false ) );
-
-        //id "18850487234" para testar comentários
-        getPhotoComments( "18850487234" );
+    private void load(){
+        if ( NetworkUtils.isNetworkAvailable( this, NetworkUtils.RESUTL_ACTIVITY_ENABLE_INTERNET ) ){
+            loadImagens();
+            //id "18850487234" para testar comentários
+            getPhotoComments();
+        }
     }
 
     @Background
-    void getPhotoComments( String idPhoto ){
-        CommentsInterface commentsInterface = myApplication.getFlicker().getCommentsInterface();
+    void getPhotoComments(){
 
+        String id = photo.getId();
+        List<Comment> comments = null;
         try {
-            List<Comment> comments = commentsInterface.getList( idPhoto, null, null );
+            comments = loadFlicker.getComments( id );
             createListComments( comments );
-        } catch ( Exception e ) {
+        } catch ( JSONException e ) {
             e.printStackTrace();
+            snackBarError();
+        } catch ( FlickrException e ) {
+            e.printStackTrace();
+            snackBarError();
+        } catch ( IOException e ) {
+            e.printStackTrace();
+            snackBarError();
+        } catch ( NullPointerException e ){
+            getPhotoComments();
+        } catch ( Exception e ){
+            getPhotoComments();
         }
+    }
+
+    private void snackBarError(){
+        Utils.snackBarErrorFlickrApi( this, new Utils.CallbackErrorFlickr() {
+            @Override
+            public void doSomethingErrorFlickrApi() {
+                getPhotoComments();
+            }
+        } );
     }
 
     @UiThread
@@ -136,5 +163,10 @@ public class DetailsPhoto extends AppCompatActivity {
         CommentsAdapter adapter = new CommentsAdapter( this );
         adapter.addAll( comments );
         recyclerViewComments.setAdapter( adapter );
+    }
+
+    @OnActivityResult( NetworkUtils.RESUTL_ACTIVITY_ENABLE_INTERNET )
+    void onResult( int resultCode ){
+        load();
     }
 }

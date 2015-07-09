@@ -15,9 +15,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="8dp">
+
+        <!-- bug FRESCO for work with android:transitionName="element1" -->
         <com.facebook.drawee.view.SimpleDraweeView
-            android:id="@+id/picture"
-            android:transitionName="element1"
+            android:id="@+id/sdPicture"
             android:layout_width="80dp"
             android:layout_height="65dp"
             tools:background="#cccccc"
@@ -29,12 +30,12 @@
             />
 
         <TextView
-            android:id="@+id/titlePhoto"
+            android:id="@+id/tvTitlePhoto"
             android:transitionName="element2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:singleLine="true"
-            android:layout_toRightOf="@id/picture"
+            android:layout_toRightOf="@id/sdPicture"
             tools:text="My title photo here"
             android:textColor="@color/primary_text"
             android:fontFamily="sans-serif"
@@ -47,8 +48,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             tools:text="Luiz Carlos Gonçalves dos Anjos"
-            android:layout_below="@id/titlePhoto"
-            android:layout_toRightOf="@id/picture"
+            android:layout_below="@id/tvTitlePhoto"
+            android:layout_toRightOf="@id/sdPicture"
             android:fontFamily="sans-serif-light"
             android:textColor="@color/second_text"
             android:textSize="@dimen/abc_text_size_small_material"

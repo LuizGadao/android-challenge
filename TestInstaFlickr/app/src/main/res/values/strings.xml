@@ -5,10 +5,13 @@
     <string name="action_settings">Settings</string>
     <string name="flickr_api_key">133b82d1e8987be89fcefac92f43ac68</string>
     <string name="flickr_secret_key">0925fd3b42a11535</string>
-    <string name="text_no_internet_connection">Without internet connection</string>
+    <string name="text_no_internet_connection">Not have internet connection</string>
+    <string name="error_flicker_api">Error Flickr API</string>
     <string name="action_connect">Connect</string>
+    <string name="action_try_again">Try again</string>
     <string name="title_activity_details_photo">DetailsPhoto</string>
     <string name="comment">{0,choice,0#No comments|1#{0} Comment|1&lt;{0} Comments }</string>
     <string name="flickr_buddyicon">http://www.flickr.com/buddyicons/%s.jpg</string>
     <string name="format_author_name" formatted="false"><![CDATA[%s <font color="#578bc7">.%s</font>]]></string>
+    <string name="with_out_title">No title</string>
 </resources>

@@ -21,7 +21,7 @@ public class MyApplication extends Application {
         bus = new Bus();
     }
 
-    Flickr getFlicker(){
+    public Flickr getFlicker(){
         return new Flickr( getString( R.string.flickr_api_key, R.string.flickr_secret_key ) );
     }
 

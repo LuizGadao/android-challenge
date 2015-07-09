@@ -3,7 +3,6 @@ package br.com.luizcarlos.testinstaflickr;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.util.Pair;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -12,16 +11,11 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.transition.Transition;
 import android.transition.TransitionInflater;
-import android.util.Log;
 import android.view.View;
 
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.googlecode.flickrjandroid.photos.Photo;
 import com.googlecode.flickrjandroid.photos.PhotoList;
-import com.googlecode.flickrjandroid.photos.PhotosInterface;
-import com.nispok.snackbar.Snackbar;
-import com.nispok.snackbar.SnackbarManager;
-import com.nispok.snackbar.listeners.ActionClickListener;
 import com.squareup.otto.Subscribe;
 
 import org.androidannotations.annotations.AfterViews;
@@ -33,13 +27,12 @@ import org.androidannotations.annotations.OnActivityResult;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import br.com.luizcarlos.testinstaflickr.adapter.RecentPhotosAdapter;
 import br.com.luizcarlos.testinstaflickr.event.ItemRecyclerViewClick;
+import br.com.luizcarlos.testinstaflickr.load.LoadFlicker;
 import br.com.luizcarlos.testinstaflickr.utils.EndlessRecyclerOnScrollListener;
 import br.com.luizcarlos.testinstaflickr.utils.NetworkUtils;
+import br.com.luizcarlos.testinstaflickr.utils.Utils;
 
 //import android.support.annotation.UiThread;
 
@@ -66,12 +59,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     RecentPhotosAdapter adapter;
 
-    //max recent photos
-    int maxRecentPhoto = 1000;
-    //total photos por page
-    int itemPerPage = 200;
-    //max page
-    int maxPage = (int) Math.floor( maxRecentPhoto/itemPerPage );
+    LoadFlicker loadFlicker;
 
     @Override
     protected void onCreate( Bundle savedInstanceState ) {
@@ -87,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         setContentView( R.layout.activity_main );
 
         swipeRefresh.setColorSchemeResources( R.color.accent, R.color.primary, R.color.green );
+        loadFlicker = new LoadFlicker();
     }
 
     @Override
@@ -107,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         recyclerView.addOnScrollListener( new EndlessRecyclerOnScrollListener( layoutManager ) {
             @Override
             public void onLoadMore( int current_page ) {
-                if ( currentPage < maxPage ){
+                if ( currentPage < loadFlicker.getMaxPage() ){
                     loadPhotos();
                     currentPage++;
                 }
@@ -122,8 +111,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     }
 
     private void loadPhotos() {
-
-        if ( NetworkUtils.isNetworkAvailable( this ) ){
+        if ( NetworkUtils.isNetworkAvailable( this, NetworkUtils.RESUTL_ACTIVITY_ENABLE_INTERNET ) ){
             swipeRefresh.setOnRefreshListener( this );
             swipeRefresh.post( new Runnable() {
                 @Override
@@ -131,43 +119,29 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                     swipeRefresh.setRefreshing( true );
                 }
             } );
-
             getPhotosFlickr();
-        }
-        else{
-            SnackbarManager.show(
-                    Snackbar.with( this ).duration( Snackbar.SnackbarDuration.LENGTH_INDEFINITE )
-                            .text( R.string.text_no_internet_connection )
-                            .textColor( getResources().getColor( android.R.color.white ) ).actionLabel( R.string.action_connect )
-                            .actionColor( getResources().getColor( R.color.accent ) )
-                            .actionListener( new ActionClickListener() {
-                                @Override
-                                public void onActionClicked( Snackbar snackbar ) {
-                                    startActivityForResult( new Intent( Settings.ACTION_WIFI_SETTINGS ), MainActivity.RESUTL_ACTIVITY_ENABLE_INTERNET );
-                                }
-                            } )
-            );
         }
     }
 
     @Background
     void getPhotosFlickr(){
-        Set<String> params = new HashSet();
-        params.add( "url_z" );//z medium 640, 640 on longest side
-        params.add( "url_n" );//n	small, 320 on longest side
-        params.add( "url_q" );//q	large square 150x150
-        params.add( "owner_name" );
-        params.add( "date_taken" );
-        params.add( "date_upload" );
-        params.add( "last_update" );
-
-        PhotosInterface photosInterface = myApplication.getFlicker().getPhotosInterface();
         try {
-            Log.i( TAG, "load-page: " + currentPage );
-            PhotoList photosRecent = photosInterface.getRecent( params, itemPerPage, currentPage );
-            addPhotosInAdapter( photosRecent );
+            PhotoList recentPhotos = loadFlicker.getRecentPhotos( currentPage );
+            addPhotosInAdapter( recentPhotos );
         } catch ( Exception e ) {
             e.printStackTrace();
+            swipeRefresh.post( new Runnable() {
+                @Override
+                public void run() {
+                    swipeRefresh.setRefreshing( false );
+                }
+            } );
+            Utils.snackBarErrorFlickrApi( this, new Utils.CallbackErrorFlickr() {
+                @Override
+                public void doSomethingErrorFlickrApi() {
+                    getPhotosFlickr();
+                }
+            } );
         }
     }
 
@@ -189,8 +163,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     }
 
     private void openDetailsPhotoActivity( Photo photo, View view ){
-        Intent intent = new Intent( this, DetailsPhoto_.class );
-        intent.putExtra( DetailsPhoto.EXTRA_OBJ_PHOTO, photo );
+        Intent intent = new Intent( this, DetailsPhotoActivity_.class );
+        intent.putExtra( DetailsPhotoActivity.EXTRA_OBJ_PHOTO, photo );
 
         //FRESCO NOT SUPPORT ANDROID TRANSITION VERY WELL
         if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ){
@@ -199,12 +173,11 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             getWindow().setSharedElementExitTransition( transition );
 
             ActivityOptionsCompat activityOptions = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                    this, Pair.create( view.findViewById( R.id.picture ), "element1" ),
-                    Pair.create( view.findViewById( R.id.titlePhoto ), "element2" ),
+                    this, //Pair.create( view.findViewById( R.id.sdPicture ), "element1" ),
+                    Pair.create( view.findViewById( R.id.tvTitlePhoto ), "element2" ),
                     Pair.create( view.findViewById( R.id.tvNameOwner ), "element3" ) );
 
             startActivity( intent, activityOptions.toBundle() );
-            //startActivity( intent );
         }else {
             startActivity( intent );
         }
@@ -215,8 +188,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         openDetailsPhotoActivity( adapter.getItems().get( event.getPosition() ), event.getView() );
     }
 
-    @OnActivityResult(RESUTL_ACTIVITY_ENABLE_INTERNET)
-    void onResult( int resultCode ){
+    @OnActivityResult( NetworkUtils.RESUTL_ACTIVITY_ENABLE_INTERNET )
+    void onResult(){
         loadPhotos();
     }
 
@@ -231,4 +204,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         photosRecent.addAll( adapter.getItems() );
         firtVisibleItemRecyclerView = ( (LinearLayoutManager)recyclerView.getLayoutManager() ).findFirstVisibleItemPosition();
     }
+
+
 }

@@ -17,7 +17,6 @@ import org.androidannotations.annotations.ViewById;
 
 import br.com.luizcarlos.testinstaflickr.MyApplication;
 import br.com.luizcarlos.testinstaflickr.R;
-import br.com.luizcarlos.testinstaflickr.adapter.ViewWrapper;
 import br.com.luizcarlos.testinstaflickr.event.ItemRecyclerViewClick;
 
 /**
@@ -27,9 +26,9 @@ import br.com.luizcarlos.testinstaflickr.event.ItemRecyclerViewClick;
 public class RecentPhotoItemView extends CardView implements ViewWrapper.Binder<Photo>, View.OnClickListener {
 
     @ViewById
-    SimpleDraweeView picture;
+    SimpleDraweeView sdPicture;
     @ViewById
-    TextView titlePhoto;
+    TextView tvTitlePhoto;
     @ViewById
     TextView tvNameOwner;
 
@@ -37,7 +36,6 @@ public class RecentPhotoItemView extends CardView implements ViewWrapper.Binder<
     MyApplication myApplication;
 
     int lastPositionBind = 0;
-    private Photo photo;
     private int position = 0;
 
     public RecentPhotoItemView( Context context ) {
@@ -47,17 +45,18 @@ public class RecentPhotoItemView extends CardView implements ViewWrapper.Binder<
 
     @Override
     public void onBind( Photo data, int position ) {
-        this.photo = data;
         this.position = position;
-        titlePhoto.setText( data.getTitle().equals( "" ) ? "without title" : data.getTitle() );
+        tvTitlePhoto.setText( data.getTitle().equals( "" ) ? myApplication.getString( R.string.with_out_title) : data.getTitle() );
         tvNameOwner.setText( data.getOwner().getUsername() );
 
         //load picture with fresco
-        picture.setImageURI( Uri.parse( data.getThumbnailUrl() ) );
+        sdPicture.setImageURI( Uri.parse( data.getThumbnailUrl() ) );
 
         //animation card
         boolean reverse = lastPositionBind > position;
         YoYo.with( reverse ? Techniques.FadeInDown : Techniques.FadeInUp ).duration( 250 ).playOn( this );
+
+        lastPositionBind = position;
     }
 
     @Override

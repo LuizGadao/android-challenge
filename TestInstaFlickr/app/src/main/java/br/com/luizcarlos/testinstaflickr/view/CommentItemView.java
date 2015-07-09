@@ -13,7 +13,6 @@ import org.androidannotations.annotations.EViewGroup;
 import org.androidannotations.annotations.ViewById;
 
 import br.com.luizcarlos.testinstaflickr.R;
-import br.com.luizcarlos.testinstaflickr.adapter.ViewWrapper;
 import br.com.luizcarlos.testinstaflickr.utils.TimeUtils;
 
 /**

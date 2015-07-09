@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import br.com.luizcarlos.testinstaflickr.view.ViewWrapper;
+
 /**
  * Created by luizcarlos on 07/07/15.
  */
